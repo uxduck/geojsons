@@ -52,7 +52,6 @@
     "react-hotkeys-hook": "^5.2.4",
     "react-map-gl": "^8.1.0",
     "react-resizable-panels": "^4.7.2",
-    "state,": "link:@codemirror/state,",
     "tailwind-merge": "^3.5.0",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^13.0.0",

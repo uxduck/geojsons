@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useStore } from "@/store/store";
 import type { SavedQrCode } from "@/store/qrCodesSlice";
-import { ChevronLeft, ChevronRight, ExternalLink, Pencil, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Copy, ExternalLink, Pencil, X } from "lucide-react";
+import { QrShareButton } from "./QrShareButton";
 function formatRelativeTime(timestamp: number): string {
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
   if (seconds < 60) return "just now";
@@ -88,26 +89,88 @@ function EditableName({ qrCode }: { qrCode: SavedQrCode }) {
       >
         {qrCode.name}
       </button>
-      <Pencil size={14} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+      <Pencil
+        size={14}
+        className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+      />
+    </div>
+  );
+}
+
+function CopyValue({ value }: { value: string }) {
+  const [status, setStatus] = useState<"idle" | "copied" | "error">("idle");
+  const resetTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => () => clearTimeout(resetTimer.current), []);
+
+  const copy = async () => {
+    clearTimeout(resetTimer.current);
+    try {
+      await navigator.clipboard.writeText(value);
+      setStatus("copied");
+    } catch {
+      setStatus("error");
+    }
+    resetTimer.current = setTimeout(() => setStatus("idle"), 2000);
+  };
+
+  const label = status === "copied" ? "Copied" : status === "error" ? "Copy failed" : "Copy value";
+
+  return (
+    <div className="flex items-center gap-1.5 max-w-full min-w-0">
+      <span className="text-xs font-mono text-muted-foreground truncate" title={value}>
+        {value}
+      </span>
+      <button
+        type="button"
+        className={`shrink-0 inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs transition-colors ${
+          status === "copied"
+            ? "bg-primary/10 text-primary"
+            : status === "error"
+              ? "bg-destructive/10 text-destructive"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+        }`}
+        aria-label={`${label}: ${value}`}
+        title={label}
+        onClick={(e) => {
+          e.stopPropagation();
+          void copy();
+        }}
+      >
+        {status === "copied" ? <Check size={13} /> : <Copy size={13} />}
+        <span>{label}</span>
+      </button>
     </div>
   );
 }
 
 function FullscreenQr({ qrCode, onClose }: { qrCode: SavedQrCode; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 bg-background flex items-center justify-center" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 bg-background flex items-center justify-center"
+      onClick={onClose}
+    >
       <button className="absolute top-4 right-4 p-2 rounded-full bg-muted text-foreground hover:bg-muted/80 transition-colors z-10">
         <X size={24} />
       </button>
       <div className="w-full h-full p-6 flex items-center justify-center">
-        <div className="bg-white rounded-xl p-4 flex items-center justify-center" style={{ maxWidth: "100%", maxHeight: "100%" }}>
+        <div
+          className="bg-white rounded-xl p-4 flex items-center justify-center"
+          style={{ maxWidth: "100%", maxHeight: "100%" }}
+        >
           <QRCodeSVG
             value={qrCode.data}
             size={1000}
             level="M"
             bgColor="#ffffff"
             fgColor="#000000"
-            style={{ width: "auto", height: "100%", maxWidth: "100%", maxHeight: "100%", aspectRatio: "1" }}
+            style={{
+              width: "auto",
+              height: "100%",
+              maxWidth: "100%",
+              maxHeight: "100%",
+              aspectRatio: "1",
+            }}
           />
         </div>
       </div>
@@ -115,12 +178,20 @@ function FullscreenQr({ qrCode, onClose }: { qrCode: SavedQrCode; onClose: () =>
   );
 }
 
-function QrSlide({ qrCode }: { qrCode: SavedQrCode }) {
+function QrSlide({ qrCode, onOpen }: { qrCode: SavedQrCode; onOpen: () => void }) {
   return (
     <div className="flex flex-col items-center gap-2 w-full shrink-0 px-4 h-full overflow-hidden">
       {/* QR code fills remaining space, constrained to square aspect ratio */}
-      <div className="flex-1 min-h-0 flex items-center justify-center w-full p-2 overflow-hidden cursor-pointer">
-        <div className="bg-white rounded-xl p-3 flex items-center justify-center h-full" style={{ aspectRatio: "1" }}>
+      <button
+        type="button"
+        className="flex-1 min-h-0 flex items-center justify-center w-full p-2 overflow-hidden cursor-pointer"
+        aria-label={`Open ${qrCode.name} QR code in fullscreen`}
+        onClick={onOpen}
+      >
+        <div
+          className="bg-white rounded-xl p-3 flex items-center justify-center h-full"
+          style={{ aspectRatio: "1" }}
+        >
           <QRCodeSVG
             value={qrCode.data}
             size={1000}
@@ -130,10 +201,20 @@ function QrSlide({ qrCode }: { qrCode: SavedQrCode }) {
             style={{ width: "100%", height: "100%", maxWidth: "100%", maxHeight: "100%" }}
           />
         </div>
-      </div>
-      <div className="shrink-0 flex flex-col items-center gap-1 w-full pb-1" onPointerDown={(e) => e.stopPropagation()}>
+      </button>
+      <div
+        className="shrink-0 flex flex-col items-center gap-1 w-full pb-1"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
         <EditableName key={qrCode.id} qrCode={qrCode} />
-        <span className="text-xs text-muted-foreground">{formatRelativeTime(qrCode.scannedAt)}</span>
+        <div className="flex max-w-full min-w-0 items-center gap-1">
+          <CopyValue value={qrCode.data} />
+          <span aria-hidden="true" className="h-3 w-px shrink-0 bg-border" />
+          <QrShareButton qrCode={qrCode} />
+        </div>
+        <span className="text-xs text-muted-foreground">
+          {formatRelativeTime(qrCode.scannedAt)}
+        </span>
       </div>
     </div>
   );
@@ -162,7 +243,7 @@ export function QrCodeDisplay() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "BUTTON" || tag === "A") return;
       if (savedQrCodes.length === 0) return;
       if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
         e.preventDefault();
@@ -186,6 +267,7 @@ export function QrCodeDisplay() {
   const [isAnimating, setIsAnimating] = useState(false);
   const pointerStart = useRef<{ x: number; y: number; id: number } | null>(null);
   const isDragging = useRef(false);
+  const suppressClick = useRef(false);
   const animationTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const goTo = useCallback(
@@ -206,9 +288,7 @@ export function QrCodeDisplay() {
     if (isAnimating) return;
     pointerStart.current = { x: e.clientX, y: e.clientY, id: e.pointerId };
     isDragging.current = false;
-    if (savedQrCodes.length > 1) {
-      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    }
+    suppressClick.current = false;
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
@@ -219,8 +299,13 @@ export function QrCodeDisplay() {
     if (!isDragging.current) {
       if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
         isDragging.current = true;
+        suppressClick.current = true;
+        if (savedQrCodes.length > 1) {
+          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+        }
       } else if (Math.abs(dy) > 10) {
         pointerStart.current = null;
+        suppressClick.current = true;
         return;
       }
     }
@@ -242,7 +327,6 @@ export function QrCodeDisplay() {
 
     if (!isDragging.current) {
       setDragOffset(0);
-      setFullscreen(true);
       return;
     }
     isDragging.current = false;
@@ -261,13 +345,24 @@ export function QrCodeDisplay() {
   const onPointerCancel = () => {
     pointerStart.current = null;
     isDragging.current = false;
+    suppressClick.current = true;
     startAnimation();
     setDragOffset(0);
   };
 
+  const onClickCapture = (e: React.MouseEvent) => {
+    if (!suppressClick.current) return;
+    e.preventDefault();
+    e.stopPropagation();
+    suppressClick.current = false;
+  };
+
   if (savedQrCodes.length === 0) {
     return (
-      <div ref={containerRef} className="h-full flex items-center justify-center text-muted-foreground px-6 text-center">
+      <div
+        ref={containerRef}
+        className="h-full flex items-center justify-center text-muted-foreground px-6 text-center"
+      >
         <p>Scan a QR code to get started</p>
       </div>
     );
@@ -282,6 +377,7 @@ export function QrCodeDisplay() {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
+        onClickCapture={onClickCapture}
         style={{ touchAction: "pan-y" }}
       >
         <div
@@ -293,7 +389,7 @@ export function QrCodeDisplay() {
         >
           {savedQrCodes.map((qr) => (
             <div key={qr.id} className="flex items-center justify-center w-full shrink-0 h-full">
-              <QrSlide qrCode={qr} />
+              <QrSlide qrCode={qr} onOpen={() => setFullscreen(true)} />
             </div>
           ))}
         </div>

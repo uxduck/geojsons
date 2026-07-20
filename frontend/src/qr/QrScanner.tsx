@@ -83,7 +83,12 @@ function CameraScanner({ onClose }: { onClose: () => void }) {
 
     const startCamera = (cameraId: string) => {
       if (cancelled) return;
-      return scanner.start(cameraId, { fps: 10, qrbox: { width: 250, height: 250 } }, onDecode, () => {});
+      return scanner.start(
+        cameraId,
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        onDecode,
+        () => {},
+      );
     };
 
     Html5Qrcode.getCameras()
@@ -93,7 +98,10 @@ function CameraScanner({ onClose }: { onClose: () => void }) {
           setError("No cameras found on this device.");
           return;
         }
-        const mapped = devices.map((d) => ({ id: d.id, label: d.label || `Camera ${d.id.slice(0, 8)}` }));
+        const mapped = devices.map((d) => ({
+          id: d.id,
+          label: d.label || `Camera ${d.id.slice(0, 8)}`,
+        }));
         setCameras(mapped);
         const backIndex = mapped.findIndex((c) => /back|rear|environment/i.test(c.label));
         const idx = backIndex >= 0 ? backIndex : 0;
@@ -103,7 +111,8 @@ function CameraScanner({ onClose }: { onClose: () => void }) {
         });
       })
       .catch((err) => {
-        if (!cancelled) setError(err?.message || "Camera access denied. Please allow camera permissions.");
+        if (!cancelled)
+          setError(err?.message || "Camera access denied. Please allow camera permissions.");
       });
 
     return () => {
@@ -243,7 +252,9 @@ export function QrScanner({ onClose }: { onClose: () => void }) {
         <button
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors",
-            mode === "camera" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+            mode === "camera"
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground",
           )}
           onClick={() => setMode("camera")}
         >
@@ -253,7 +264,9 @@ export function QrScanner({ onClose }: { onClose: () => void }) {
         <button
           className={cn(
             "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors",
-            mode === "text" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+            mode === "text"
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground",
           )}
           onClick={() => setMode("text")}
         >

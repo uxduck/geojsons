@@ -9,7 +9,10 @@ export function QrCodeList() {
   const selectedQrCodeId = useStore.use.selectedQrCodeId();
   const [query, setQuery] = useState("");
 
-  const fuse = useMemo(() => new Fuse(savedQrCodes, { keys: ["name", "data"], threshold: 0.4 }), [savedQrCodes]);
+  const fuse = useMemo(
+    () => new Fuse(savedQrCodes, { keys: ["name", "data"], threshold: 0.4 }),
+    [savedQrCodes],
+  );
 
   const filtered = query.trim() ? fuse.search(query).map((r) => r.item) : savedQrCodes;
 
@@ -17,7 +20,10 @@ export function QrCodeList() {
     <div className="flex flex-col h-full">
       <div className="px-3 py-2 border-b border-border">
         <div className="relative">
-          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Search
+            size={14}
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+          />
           <input
             type="text"
             placeholder="Search QR codes..."
@@ -29,9 +35,13 @@ export function QrCodeList() {
       </div>
       <div className="flex-1 overflow-y-auto scrollbar-themed">
         {filtered.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">{query ? "No matches" : "No QR codes saved"}</p>
+          <p className="text-sm text-muted-foreground text-center py-8">
+            {query ? "No matches" : "No QR codes saved"}
+          </p>
         ) : (
-          filtered.map((qr) => <QrCodeListItem key={qr.id} qrCode={qr} isSelected={qr.id === selectedQrCodeId} />)
+          filtered.map((qr) => (
+            <QrCodeListItem key={qr.id} qrCode={qr} isSelected={qr.id === selectedQrCodeId} />
+          ))
         )}
       </div>
     </div>

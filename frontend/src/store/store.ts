@@ -49,6 +49,8 @@ const unpersistedProperties = [
   "activeTab",
   "searchQuery",
   "selectedQrCodeId",
+  "qrUndoStack",
+  "qrRedoStack",
 ];
 
 const applicationLocalStorageName = "geojsons.com";

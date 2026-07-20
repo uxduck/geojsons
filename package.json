@@ -1,5 +1,19 @@
 {
-	"devDependencies": {
-		"eslint-plugin-tailwindcss": "^3.18.2"
-	}
+  "name": "@geojsons/root",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter geojsons dev",
+    "server:dev": "pnpm --filter geojsons-tile-server dev",
+    "build": "pnpm --filter geojsons build",
+    "test": "pnpm --recursive --if-present test",
+    "lint": "pnpm --filter geojsons lint",
+    "lint:fix": "pnpm --filter geojsons lint:fix",
+    "fmt": "pnpm --filter geojsons fmt",
+    "fmt:check": "pnpm --filter geojsons fmt:check",
+    "preview": "pnpm --filter geojsons preview"
+  },
+  "devDependencies": {
+    "eslint-plugin-tailwindcss": "^3.18.2"
+  },
+  "packageManager": "pnpm@11.15.0"
 }

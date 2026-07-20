@@ -1,0 +1,30 @@
+packages:
+  - frontend
+  - frontend/server
+
+allowBuilds:
+  "@danmarshall/deckgl-typings": true
+  "@swc/core": true
+  "@vaadin/vaadin-usage-statistics": false
+  better-sqlite3: true
+  core-js: true
+  esbuild: true
+  protobufjs: true
+  sharp: true
+  vue-demi: false
+  workerd: true
+
+minimumReleaseAge: 1440
+
+strictDepBuilds: true
+
+trustPolicy: no-downgrade
+
+trustPolicyExclude:
+  # These transitive releases are also exempted in DuckType.
+  - semver@6.3.1
+  - undici-types@6.21.0
+  # Workbox still pins this pre-provenance Rollup release.
+  - rollup@2.80.0
+
+verifyDepsBeforeRun: install

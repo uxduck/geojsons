@@ -1,8 +1,0 @@
-onlyBuiltDependencies:
-  - "@danmarshall/deckgl-typings"
-  - "@swc/core"
-  - core-js
-  - esbuild
-  - protobufjs
-  - sharp
-  - workerd
